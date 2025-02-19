@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 1s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .content {
+            text-align: center;
+            padding: 20px;
+            z-index: 1;
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .memory-box {
+            background: rgba(255, 105, 180, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            line-height: 1.6;
+            font-size: clamp(16px, 4vw, 33px);
+            word-wrap: break-word;
+        }
+
+        .memory-box p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .slap-container {
+            position: relative;
+            width: min(200px, 80vw);
+            height: min(200px, 80vw);
+            margin: 20px auto;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        .person {
+            font-size: clamp(40px, 15vw, 80px);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.2s;
+        }
+
+        .hand {
+            font-size: clamp(30px, 12vw, 60px);
+            position: absolute;
+            right: -25%;
+            top: 20px;
+            transition: transform 0.2s;
+            transform: rotate(-45deg);
+            opacity: 0;
+        }
+
+        .slap-message {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(14px, 3.5vw, 16px);
+            color: #ff69b4;
+            opacity: 0;
+            transition: all 0.3s;
+            white-space: normal;
+            max-width: 90vw;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 105, 180, 0.5);
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: clamp(24px, 6vw, 36px);
+            color: #ff69b4;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: clamp(10px, 3vw, 15px) clamp(20px, 5vw, 30px);
+            font-size: clamp(16px, 4vw, 24px);
+            margin: 10px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s;
+            width: fit-content;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .next {
+         margin-top: -4rem;
+        }
+
+        .slap-text {
+            color: #ff69b4;
+            font-size: clamp(14px, 3.5vw, 18px);
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px rgba(255, 20, 147, 0.5);
+        }
+
+        .person-normal::after { content: "😊"; }
+        .person-hit::after { content: "😵"; }
+        .hidden { display: none; }
+        
+        @keyframes slap {
+            0% { transform: rotate(-45deg) translateX(0); opacity: 0; }
+            50% { transform: rotate(-45deg) translateX(-80px); opacity: 1; }
+            100% { transform: rotate(-45deg) translateX(-100px); opacity: 0; }
+        }
+
+        @keyframes faceRotate {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-50%) rotate(20deg); }
+            75% { transform: translateX(-50%) rotate(-60deg); }
+            100% { transform: translateX(-50%) rotate(-45deg); }
+        }
+
+        .slap-animation .hand { animation: slap 0.3s forwards; }
+        .slap-animation .person { animation: faceRotate 0.3s forwards; }
+        
+        .hit-effect {
+            position: absolute;
+            font-size: clamp(20px, 8vw, 40px);
+            opacity: 0;
+        }
+
+        .hit-effect.active {
+            animation: hitEffect 0.5s forwards;
+        }
+
+        @keyframes hitEffect {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(50px, -50px) rotate(90deg); opacity: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .content {
+                width: 95%;
+                padding: 10px;
+            }
+
+            .memory-box {
+                padding: 15px;
+            }
+
+            .slap-message {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+        }  
+
+        .play-sound-btn {
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+        }
+
+        .play-sound-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .play-sound-btn:active {
+            transform: scale(0.95);
+        }
+
+        .content-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+            display: none;
+        }
+
+        .content-section.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .slap-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="content">
+        <div id="stage1">
+            <h1>Happy Birthday! 🎂</h1>
+            <button onclick="showLove()">Click to Start ❤️</button>
+        </div>
+
+        <div id="stage2" class="hidden">
+            <button class="play-sound-btn" onclick="playAndReveal('sound1', 'content1')">🎵</button>
+            
+            <div id="content1" class="content-section">
+                <div class="memory-box">
+                    <p>Happy Birthday meri Shona❤️<br>
+</p>
+                </div>
+                <button class="play-sound-btn" onclick="playAndReveal('sound2', 'content2')">🎵</button>
+            </div>
+            
+            <div id="content2" class="content-section">
+                <div class="memory-box">
+                    <p>yeh din hamesha meri life mein special rahega</p>
+                </div>
+                <button class="play-sound-btn" onclick="playAndReveal('sound3', 'content3')">🎵</button>
+            </div>
+            
+            <div id="content3" class="content-section">
+                <div class="memory-box">
+                    <p>Aen is din ko phir se manaen khushi se or yadgar banae 
+                 </p>
+                </div>
+                <div class="slap-section">
+                    <div class="slap-text">Want to slap me? Here's your chance! 😜</div>
+                    <div class="slap-container" onclick="playSlap()">
+                        <div class="person person-normal"></div>
+                        <div class="hand">✋</div>
+                        <div class="hit-effect">💫</div>
+                        <div class="slap-message"></div>
+                    </div>
+                    <button class="next" onclick="location.href='index2.html'">Cake cut</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slapMessages = [
+            "Ouch! lag rahe he yr apne massom bache ko marengi? 🥺",
+            "bs marti rahein, huh!. boldia to marengi 🎂",
+            "chlein bsh ab gale lagein chlein",
+            "bsh na ab kissi do chlein mjhe lips wali dein bubu",
+            "thora piyar bhi krlein😘",
+            "bssshh krein na lag rahe na yr🌟",
+            "Ab toh gale bhi lag jaen! 🤗",
+          
+        ];
+
+        let lastMessageIndex = -1;
+        let currentAudio = null;
+
+        window.onload = function() {
+            createStars();
+        };
+
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.width = star.style.height = `${Math.random() * 3}px`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function showLove() {
+            document.getElementById('stage1').classList.add('hidden');
+            document.getElementById('stage2').classList.remove('hidden');
+        }
+
+        function getRandomMessage() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * slapMessages.length);
+            } while (newIndex === lastMessageIndex);
+            
+            lastMessageIndex = newIndex;
+            return slapMessages[newIndex];
+        }
+
+        function playSlap() {
+            const container = document.querySelector('.slap-container');
+            const person = container.querySelector('.person');
+            const hitEffect = container.querySelector('.hit-effect');
+            const slapMessage = container.querySelector('.slap-message');
+            
+            clearTimeout(container.resetTimeout);
+            
+            person.classList.remove('person-normal');
+            person.classList.add('person-hit');
+            container.classList.add('slap-animation');
+            hitEffect.classList.add('active');
+            
+            slapMessage.textContent = getRandomMessage();
+            slapMessage.classList.add('show');
+            
+            createHitEffects();
+            
+            setTimeout(() => {
+                container.classList.remove('slap-animation');
+                person.classList.remove('person-hit');
+                person.classList.add('person-normal');
+                hitEffect.classList.remove('active');
+            }, 1500);
+
+            container.resetTimeout = setTimeout(() => {
+                slapMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        function createHitEffects() {
+            const container = document.querySelector('.slap-container');
+            const effects = ['💫', '⭐', '✨'];
+            
+            for (let i = 0; i < 5; i++) {
+                const effect = document.createElement('div');
+                effect.className = 'hit-effect';
+                effect.style.left = `${Math.random() * 100}%`;
+                effect.style.top = `${Math.random() * 100}%`;
+                effect.textContent = effects[Math.floor(Math.random() * effects.length)];
+                container.appendChild(effect);
+                effect.classList.add('active');
+                
+                setTimeout(() => effect.remove(), 500);
+            }
+        }
+
+        function playAndReveal(soundId, contentId) {
+            const soundUrls = {
+                'sound1': 'sound1.mp3',
+                'sound2': 'sound2.mp3',
+                'sound3': 'sound3.mp3'
+            };
+
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            currentAudio = new Audio(soundUrls[soundId]);
+            currentAudio.play().catch(error => {
+                console.log("Error playing sound:", error);
+            });
+
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('show');
+            });
+
+            const content = document.getElementById(contentId);
+            if (content) {
+                content.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
